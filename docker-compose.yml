@@ -1,0 +1,19 @@
+version: "3.1"
+
+services:
+  sshllm:
+    image: ghcr.io/zachatrocity/mossh:latest
+    container_name: sshcli
+    volumes:
+      - ./allowlist:/mossh/allowlist
+      - ./mods.yml:/root/.config/mods/mods.yml #https://github.com/charmbracelet/mods/blob/main/config_template.yml
+    ports:
+      - 22:23234 # :22 must be available, you might need to change openssh to another port like :2222
+    environment:
+      - GROQ_API_KEY=TOKEN
+      - OPENAI_API_KEY=TOKEN
+      # See mods docks for list of env variables that can be configured
+      # https://github.com/charmbracelet/mods/tree/main
+      # Optional - If provided it will only allow public keys in the specified file to connect
+      - MOSSH_ALLOW_LIST=./.ssh/allowlist
+    restart: unless-stopped

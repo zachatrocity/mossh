@@ -17,6 +17,8 @@ import (
 	"github.com/charmbracelet/wish/activeterm"
 	"github.com/charmbracelet/wish/bubbletea"
 	"github.com/charmbracelet/wish/logging"
+
+	_ "github.com/joho/godotenv/autoload"
 )
 
 const (
@@ -25,16 +27,31 @@ const (
 )
 
 func main() {
+	authHandler := wish.WithPublicKeyAuth(func(ssh.Context, ssh.PublicKey) bool {
+		log.Warn("MOSSH_ALLOW_LIST not set, allowing all public keys")
+		return true
+	})
+
+	if os.Getenv("MOSSH_ALLOW_LIST") != "" {
+		authHandler = wish.WithAuthorizedKeys(os.Getenv("MOSSH_ALLOW_LIST"))
+	}
+
 	s, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(host, port)),
 		wish.WithHostKeyPath(".ssh/id_ed25519"),
 		ssh.AllocatePty(),
+		authHandler,
 		wish.WithMiddleware(
-			bubbletea.Middleware(teaHandler),
+			bubbletea.Middleware(func(s ssh.Session) (tea.Model, []tea.ProgramOption) {
+				return model{
+					sess: s,
+				}, []tea.ProgramOption{tea.WithAltScreen()}
+			}),
 			activeterm.Middleware(),
 			func(next ssh.Handler) ssh.Handler {
 				return func(sess ssh.Session) {
 
+					// todo: figure out why the renderer wont work through ssh
 					// renderer := bubbletea.MakeRenderer(sess)
 
 					if len(sess.Command()) > 0 {
@@ -51,6 +68,7 @@ func main() {
 					next(sess)
 				}
 			},
+
 			logging.Middleware(),
 		),
 	)
@@ -77,41 +95,30 @@ func main() {
 	}
 }
 
-func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
-	// Set up the model with the current session and styles.
-	// We'll use the session to call wish.Command, which makes it compatible
-	// with tea.Command.
-	m := model{
-		sess: s,
-	}
-	return m, []tea.ProgramOption{tea.WithAltScreen()}
-}
-
 type model struct {
 	sess ssh.Session
 	done bool
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	// return nil
+	c := wish.Command(m.sess, "mods", m.sess.Command()...)
+	cmd := tea.Exec(c, func(err error) tea.Msg {
+		if err != nil {
+			log.Error("shell finished", "error", err)
+		}
+		m.done = true
+		return err
+	})
+	return cmd
 }
 
-type cmdFinishedMsg struct{ err error }
-
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if !m.done {
-		c := wish.Command(m.sess, "mods", m.sess.Command()...)
-		cmd := tea.Exec(c, func(err error) tea.Msg {
-			if err != nil {
-				log.Error("shell finished", "error", err)
-			}
-			m.done = true
-			return cmdFinishedMsg{err: err}
-		})
-		m.done = true
-		return m, cmd
-	}
-
+	// we're immediately executing mods with the commands passed
+	// from ssh, we can do that in the Init() function. After that runs
+	// we can immediately quit.
+	// I feel like we shouldn't need bubbletea at all but right we use it just
+	// for it's renderer
 	return m, tea.Quit
 }
 

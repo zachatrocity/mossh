@@ -1,0 +1,33 @@
+image: alpine/edge
+
+secrets:
+  - 413a3f79-4a53-4f77-8928-bec55930d32e
+
+sources:
+  - https://git.sr.ht/~zachr/mossh
+
+packages:
+  - go
+  - docker
+  - docker-cli-buildx
+
+tasks:
+  - prepare: |
+      go install github.com/goreleaser/goreleaser@latest
+      sudo service docker start
+
+  - build: |
+      cd mossh
+      sudo ../go/bin/goreleaser release --clean --snapshot 
+
+  # publish the image using the just recipe
+  #   - set environment variables from the ~/.envdir directory. see
+  #   http://smarden.org/runit/chpst.8.html for details on chpst
+  #   - sudo (-u root) is required to run podman without more setup
+  #   - sudo --preserve-env is required to pass environment variables 
+  - publish: |
+      cd mossh
+      source ~/.envdir/GH_PAT
+      sudo --preserve-env \
+        echo $GHCR_TOKEN | sudo docker login ghcr.io -u zachatrocity --password-stdin
+        sudo docker push ghcr.io/zachatrocity/mossh:latest
