@@ -11,7 +11,6 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/log"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish"
@@ -29,43 +28,29 @@ func main() {
 	s, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(host, port)),
 		wish.WithHostKeyPath(".ssh/id_ed25519"),
-
-		// Allocate a pty.
-		// This creates a pseudoconsole on windows, compatibility is limited in
-		// that case, see the open issues for more details.
 		ssh.AllocatePty(),
 		wish.WithMiddleware(
-			// run our Bubble Tea handler
-			// bubbletea.Middleware(teaHandler),
-
-			// ensure the user has requested a tty
+			bubbletea.Middleware(teaHandler),
 			activeterm.Middleware(),
-			wish.Middleware(
-				func(next ssh.Handler) ssh.Handler {
-					return func(sess ssh.Session) {
-						cmd := sess.Command()
+			func(next ssh.Handler) ssh.Handler {
+				return func(sess ssh.Session) {
 
-						if len(cmd) >= 1 {
-							// at least one argument was passed
-							// pipe it to mods command
-							modsResponse := exec.Command("mods", cmd...)
+					// renderer := bubbletea.MakeRenderer(sess)
 
-							if err := modsResponse.Run(); err != nil {
-								wish.Fatal(sess, err)
-							}
-							modsResponse.Wait()
-							// out, _ := glamo.Render(aiResponse, "dark")
-							println(modsResponse.Stdout)
-							wish.Print(sess, modsResponse.Stdout)
-							_ = sess.Exit(1)
-						} else {
-							// no args were passed launch bubbletea
-						}
+					if len(sess.Command()) > 0 {
+						// commands or args provided pass it to mods
+						mods := exec.Command("mods", sess.Command()...)
+						mods.Stdout = sess
+						mods.Stderr = sess.Stderr()
 
-						next(sess)
+						mods.Run()
+
+						_ = sess.Exit(1)
 					}
-				},
-			),
+
+					next(sess)
+				}
+			},
 			logging.Middleware(),
 		),
 	)
@@ -93,24 +78,18 @@ func main() {
 }
 
 func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
-	// Create a lipgloss.Renderer for the session
-	renderer := bubbletea.MakeRenderer(s)
 	// Set up the model with the current session and styles.
 	// We'll use the session to call wish.Command, which makes it compatible
 	// with tea.Command.
 	m := model{
-		sess:     s,
-		style:    renderer.NewStyle().Foreground(lipgloss.Color("8")),
-		errStyle: renderer.NewStyle().Foreground(lipgloss.Color("3")),
+		sess: s,
 	}
 	return m, []tea.ProgramOption{tea.WithAltScreen()}
 }
 
 type model struct {
-	err      error
-	sess     ssh.Session
-	style    lipgloss.Style
-	errStyle lipgloss.Style
+	sess ssh.Session
+	done bool
 }
 
 func (m model) Init() tea.Cmd {
@@ -120,28 +99,22 @@ func (m model) Init() tea.Cmd {
 type cmdFinishedMsg struct{ err error }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
+	if !m.done {
 		c := wish.Command(m.sess, "mods", m.sess.Command()...)
 		cmd := tea.Exec(c, func(err error) tea.Msg {
 			if err != nil {
 				log.Error("shell finished", "error", err)
 			}
+			m.done = true
 			return cmdFinishedMsg{err: err}
 		})
+		m.done = true
 		return m, cmd
-	case cmdFinishedMsg:
-		m.err = msg.err
-		return m, tea.Quit
 	}
 
-	return m, nil
+	return m, tea.Quit
 }
 
 func (m model) View() string {
-	if m.err != nil {
-		return m.errStyle.Render(m.err.Error() + "\n")
-	}
-	return m.style.Render("Press 'e' to edit, 's' to hop into a shell, or 'q' to quit...\n")
+	return ""
 }
