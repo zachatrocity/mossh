@@ -10,7 +10,12 @@ https://github.com/charmbracelet/mods/blob/main/examples.md
 Once running and exposed through port 22 you can run like so:
 
 ```
-ssh mods.your.domain "whats up doc?"
+ssh mods.your.domain -t "whats up doc?"
+```
+
+or to enter a chat app:
+```
+ssh mods.your.domain
 ```
 
 ## How To                                         

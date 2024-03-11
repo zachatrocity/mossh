@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net"
 	"os"
-	"os/exec"
 	"os/signal"
 	"syscall"
 	"time"
@@ -14,7 +13,6 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/charmbracelet/ssh"
 	"github.com/charmbracelet/wish"
-	"github.com/charmbracelet/wish/activeterm"
 	"github.com/charmbracelet/wish/bubbletea"
 	"github.com/charmbracelet/wish/logging"
 
@@ -39,36 +37,14 @@ func main() {
 	s, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort(host, port)),
 		wish.WithHostKeyPath(".ssh/id_ed25519"),
-		ssh.AllocatePty(),
 		authHandler,
+		ssh.AllocatePty(),
 		wish.WithMiddleware(
 			bubbletea.Middleware(func(s ssh.Session) (tea.Model, []tea.ProgramOption) {
 				return model{
 					sess: s,
 				}, []tea.ProgramOption{tea.WithAltScreen()}
 			}),
-			activeterm.Middleware(),
-			func(next ssh.Handler) ssh.Handler {
-				return func(sess ssh.Session) {
-
-					// todo: figure out why the renderer wont work through ssh
-					// renderer := bubbletea.MakeRenderer(sess)
-
-					if len(sess.Command()) > 0 {
-						// commands or args provided pass it to mods
-						mods := exec.Command("mods", sess.Command()...)
-						mods.Stdout = sess
-						mods.Stderr = sess.Stderr()
-
-						mods.Run()
-
-						_ = sess.Exit(1)
-					}
-
-					next(sess)
-				}
-			},
-
 			logging.Middleware(),
 		),
 	)
