@@ -2,6 +2,14 @@
                                                                      
 This is a simple [ssh](https://github.com/charmbracelet/wish) wrapper around [charmbracelet/mods](https://github.com/charmbracelet/mods) designed to allow you to acccess your mods instances from anywhere
 
+### Continuous Chat
+
+![demo](chat.gif)
+
+### Response only
+
+![pipe](pipe.gif)
+
 ## Examples
 Take a look at the mods examples to see what you can do:
 
