@@ -1,9 +1,9 @@
 version: "3.1"
 
 services:
-  sshllm:
+  mossh:
     image: ghcr.io/zachatrocity/mossh:latest
-    container_name: sshcli
+    container_name: mossh
     volumes:
       - ./allowlist:/mossh/allowlist
       - ./mods.yml:/root/.config/mods/mods.yml #https://github.com/charmbracelet/mods/blob/main/config_template.yml
