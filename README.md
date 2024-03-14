@@ -37,6 +37,7 @@ You can force requesting the tty to your host with the following config in your 
 ```
 Host x.x.x.x
     RequestTTY force
+    LogLevel QUIET #removes ssh messages helpful for piping into commands
 ```
 
 Passing flags directly to mods rather than ssh can be accomplished like so:
