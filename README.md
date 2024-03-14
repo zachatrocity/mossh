@@ -6,9 +6,6 @@ This is a simple [ssh](https://github.com/charmbracelet/wish) wrapper around [ch
 
 ![demo](chat.gif)
 
-### Response only
-
-![pipe](pipe.gif)
 
 ## Examples
 Take a look at the mods examples to see what you can do:
