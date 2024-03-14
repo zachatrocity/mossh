@@ -6,6 +6,10 @@ This is a simple [ssh](https://github.com/charmbracelet/wish) wrapper around [ch
 
 ![demo](chat.gif)
 
+### Inline
+
+![demo](pipe.gif)
+
 
 ## Examples
 Take a look at the mods examples to see what you can do:
@@ -41,6 +45,18 @@ Passing flags directly to mods rather than ssh can be accomplished like so:
 
 ```
 ssh mods.your.domain -- -C
+```
+
+Pass system prompts to mods by configuring them in the `roles` section of your mods settings like so:
+
+```yaml
+#mods.yaml
+roles:
+  "bash":
+    - you provide shell commands to resolve common questions
+    - the commands don't need any explaining
+    - commands should preferably be one-liners
+    - do not include any comments
 ```
 
 For list of flags that can be used with mods [see here](https://github.com/charmbracelet/mods)

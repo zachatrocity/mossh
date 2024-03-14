@@ -64,10 +64,6 @@ Set FontSize 32
 Set Width 1200
 Set Height 600
 
-Type "ssh localhost -p 23234 -- -r -q 'Give me one liner bash command to list the current processes running on port 3000. Dont give me any other information' | pbcopy" Sleep 500ms Enter
-
-Sleep 1s
-
-Ctrl+V
+Type "ssh localhost -p 23234 -- -r --role bash 'list all processes running on port 3000'" Sleep 500ms Enter
 
 Sleep 5s
