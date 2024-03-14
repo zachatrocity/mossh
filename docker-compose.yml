@@ -8,7 +8,8 @@ services:
       - ./allowlist:/mossh/allowlist
       - ./mods.yml:/root/.config/mods/mods.yml #https://github.com/charmbracelet/mods/blob/main/config_template.yml
     ports:
-      - 22:23234 # :22 must be available, you might need to change openssh to another port like :2222
+      - 22:22 # :22 must be available on host, you might need to change openssh to another port like :2222
+      # or you can tunnel to the container with tailscale or something
     environment:
       - GROQ_API_KEY=TOKEN
       - OPENAI_API_KEY=TOKEN

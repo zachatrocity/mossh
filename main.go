@@ -19,7 +19,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-const (
+var (
 	host = "localhost"
 	port = "23234"
 )
@@ -32,6 +32,14 @@ func main() {
 
 	if os.Getenv("MOSSH_ALLOW_LIST") != "" {
 		authHandler = wish.WithAuthorizedKeys(os.Getenv("MOSSH_ALLOW_LIST"))
+	}
+
+	if os.Getenv("MOSSH_PORT") != "" {
+		port = os.Getenv("MOSSH_PORT")
+	}
+
+	if os.Getenv("MOSSH_HOST") != "" {
+		host = os.Getenv("MOSSH_HOST")
 	}
 
 	s, err := wish.NewServer(
