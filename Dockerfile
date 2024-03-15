@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 alpine:latest
+FROM alpine:latest
 
 # # Create directories
 WORKDIR /mossh
@@ -7,7 +7,7 @@ VOLUME /mossh
 
 # install mods from latest github binary
 RUN apk --no-cache add curl tar
-RUN curl -sLO $(curl -s https://api.github.com/repos/charmbracelet/mods/releases/latest | grep "https.*aarch64.apk" | awk '{print $2}' | sed 's|[\"\,]*||g')
+RUN curl -sLO $(curl -s https://api.github.com/repos/charmbracelet/mods/releases/latest | grep "https.*_x86_64.apk" | awk '{print $2}' | sed 's|[\"\,]*||g')
 RUN apk add --allow-untrusted $(ls | grep -E '\.apk$')
 
 # workaround to prevent slowness in docker when running with a tty

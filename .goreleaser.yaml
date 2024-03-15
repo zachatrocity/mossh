@@ -43,8 +43,6 @@ dockers:
   - id: mossh
     goos: linux
     goarch: amd64
-    goarm: ""
-    goamd64: "v1"
     use: "buildx"
     ids:
       - mossh
