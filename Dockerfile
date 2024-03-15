@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM --platform=linux/amd64 alpine:latest
 
 # # Create directories
 WORKDIR /mossh
