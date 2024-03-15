@@ -28,7 +28,10 @@ ssh mods.your.domain
 ```
 
 ## How To                                         
-See `docker-compose.yml` for details. 
+See `docker-compose.yml` for basic setup. 
+
+#### Tailscale
+See `docker-compose-ts.yml` for setup tunneled through tailscale. 
 
 By default it will accept all incoming connections with a valid public key. In order to whitelist only specific public keys, create an allowlist file and set the `MOSSH_ALLOW_LIST` env variable. 
 

@@ -5,10 +5,10 @@ services:
     image: ghcr.io/zachatrocity/mossh:latest
     container_name: mossh
     volumes:
-      - ./allowlist:/mossh/allowlist
-      - ./mods.yml:/root/.config/mods/mods.yml #https://github.com/charmbracelet/mods/blob/main/config_template.yml
+      - ${PWD}:/mossh
+      - ${PWD}/mods/:/root/.config/mods/ #https://github.com/charmbracelet/mods/blob/main/config_template.yml
     ports:
-      - 22:22 # :22 must be available on host, you might need to change openssh to another port like :2222
+      - 23234:23234 # :22 must be available on host, you might need to change openssh to another port like :2222
       # or you can tunnel to the container with tailscale or something
     environment:
       - GROQ_API_KEY=TOKEN
@@ -16,5 +16,5 @@ services:
       # See mods docks for list of env variables that can be configured
       # https://github.com/charmbracelet/mods/tree/main
       # Optional - If provided it will only allow public keys in the specified file to connect
-      - MOSSH_ALLOW_LIST=./.ssh/allowlist
+      - MOSSH_ALLOW_LIST=/mossh/allowlist
     restart: unless-stopped
