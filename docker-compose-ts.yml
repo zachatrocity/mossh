@@ -1,0 +1,30 @@
+version: "3.8"
+services:
+  ts-mossh:
+    image: tailscale/tailscale:latest
+    hostname: ts-mossh
+    environment:
+      - TS_AUTHKEY=OAUTHKEYHERE #add your oauth key
+      - TS_EXTRA_ARGS=--advertise-tags=tag:container
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - ${PWD}/ts-mossh/state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    restart: unless-stopped
+  mossh:
+    image: ghcr.io/zachatrocity/mossh:latest
+    container_name: mossh
+    volumes:
+      - ${PWD}:/mossh
+      - ${PWD}/mods/:/root/.config/mods/
+    restart: unless-stopped
+    environment:
+      - GROQ_API_KEY=TOKEN
+      - MOSSH_ALLOW_LIST=/mossh/allowlist
+    network_mode: service:ts-mossh
+    depends_on:
+      - ts-mossh
+networks: {}
